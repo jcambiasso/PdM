@@ -27,7 +27,22 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+typedef void (*patternCallback)(void);
 
+/**
+ * @brief Struct que describe un patrón de ejecución de un timer.
+ */
+typedef struct{
+	uint16_t repeats; 				/*!< Define cuantas veces se ejecuta el patrón hasta dar done  */
+	uint16_t currentCicle;			/*!< Cuantas veces se ejecuto el ciclo */
+	uint32_t interval;				/*!< Tiempo total que dura cada repetición  */
+	uint8_t dutyCicle;				/*!< Porcentaje de interval hasta ejecutar callback_off. Maximo 99   */
+	delay_t * delay;				/*!< controlador de tiempo para el generador de patrones  */
+	bool done;						/*!< Indica que el patrón se ejecutó completo   */
+	bool off_period;				/*!< Indica que el patron está ejecutando el ciclo off   */
+	patternCallback callbackOff;	/*!< Función a ejecutar cuando trascurre un tiempo interval*dutyCicle   */
+	patternCallback callbackOn;		/*!< Función a ejecutar apenas inicia un ciclo   */
+} TimerPattern_t;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -58,6 +73,9 @@ PCD_HandleTypeDef hpcd_USB_OTG_FS;
  */
 GetCurrentTick_t getCurrentTick = HAL_GetTick;
 delay_t delayLed = {0};
+TimerPattern_t testPattern1 = {0};
+TimerPattern_t testPattern2 = {0};
+TimerPattern_t testPattern3 = {0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -68,11 +86,50 @@ static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_FS_PCD_Init(void);
 /* USER CODE BEGIN PFP */
 
+/**
+  * @brief  Inicializa una secuencia de timer
+  * @param pattern Puntero a estrucutra TimePattern_t
+  * @param delay Puntero a instancia de delay para usar en el patrón.
+  * @param repeats La cantidad de ciclos que se repite la secuencia.
+  * @param interval el tiempo de duración total de cada ciclo
+  * @param Duty dicle del periodo On.
+  * @param callbackOff Función llamaba cuando expire el periodo Off.
+  * @param callbackOn Función llamaba cuando inica cada ciclo.
+  * @retval None
+  */
+void patternInit(TimerPattern_t* pattern,delay_t* delay,uint16_t repeats,uint32_t interval, uint8_t dutyCicle, patternCallback callbackOff, patternCallback callbackOn);
+
+/**
+  * @brief  Ejecuta una secuencia.
+  * @note 	Esta función es thread safe porque guardo todo en el TimerPattern_t.
+  * @param pattern Puntero a estrucutra TimePattern_t
+  * @retval true La secuencia finalizó
+  * @retval false La secuencia no finalizó
+  */
+bool patternRun(TimerPattern_t* pattern);
+
+
+/**
+  * @brief  Ejecuta una secuencia
+  * @note	Era más fácil el código si tomaba un array de punteros a las estrucutras. Como para poder aceptar arrays de cualquier tamaño tengo que aceptar punteros
+  * 		del mismo tipo (osea, puntero a TimerPattern_t), me termina quedando un puntero de puntero a TimerPattern_t.
+  * 		Esta función _no_ es thread safe (uso una variable estática).
+  * @param size Tamaño de la colección.
+  * @retval true La secuencia finalizó
+  * @retval false La secuencia no finalizó
+  */
+bool patternCollectionRun(TimerPattern_t ** collection, size_t size);
+
+
+void patternRestart(TimerPattern_t* pattern);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void testPatternCallback(void){
+	HAL_GPIO_TogglePin(GPIOB, LD1_Pin);
+}
 /* USER CODE END 0 */
 
 /**
@@ -109,6 +166,11 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   delayInit(&delayLed, 100, false);
+  patternInit(&testPattern1,&delayLed,5,1000,50,testPatternCallback,testPatternCallback);
+  patternInit(&testPattern2,&delayLed,5,200,50,testPatternCallback,testPatternCallback);
+  patternInit(&testPattern3,&delayLed,5,100,50,testPatternCallback,testPatternCallback);
+
+  TimerPattern_t* patternArray[3] = {&testPattern1,&testPattern2,&testPattern3};
 
   /* USER CODE END 2 */
 
@@ -117,9 +179,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  if(delayRead(&delayLed)){
-		  HAL_GPIO_TogglePin(GPIOB, LD1_Pin);
-	  }
+	  patternCollectionRun(patternArray,3);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -391,6 +451,71 @@ void delayStart(delay_t * delay){
 
 void delatStop(delay_t * delay){
 	delay->enabled = false;
+}
+
+void patternInit(TimerPattern_t* pattern,delay_t* delay,uint16_t repeats,uint32_t interval, uint8_t dutyCicle, patternCallback callbackOff, patternCallback callbackOn){
+	if(dutyCicle > 99) dutyCicle = 99;
+	pattern->callbackOff = callbackOff;
+	pattern->callbackOn = callbackOn;
+	pattern->interval = interval;
+	pattern->repeats = repeats;
+	pattern->delay = delay;
+	pattern->done = false;
+	pattern->dutyCicle = dutyCicle;
+	pattern->currentCicle = 0;
+	pattern->off_period = false;
+	interval = (uint32_t)((interval * dutyCicle)/100);
+	delayInit(delay,interval,false);
+}
+
+bool patternRun(TimerPattern_t* pattern){
+	if(pattern->done) return true;
+	if(pattern->currentCicle == pattern->repeats){
+		pattern->done = true;
+		return true;
+	}
+	if(!pattern->delay->running) {
+		pattern->callbackOn();
+		uint8_t dutycicle = pattern->dutyCicle;
+		if(dutycicle > 99) dutycicle = 99;
+		delayWrite(pattern->delay, (uint32_t)((pattern->interval*(dutycicle))/100), true );
+	}
+	if(delayRead(pattern->delay)){
+		if(!pattern->off_period){
+			pattern->callbackOff();
+			pattern->off_period = true;
+			uint8_t dutycicle = pattern->dutyCicle;
+			if(dutycicle > 99) dutycicle = 99;
+			delayWrite(pattern->delay, (uint32_t)((pattern->interval*(100-dutycicle))/100), true );
+			return false;
+		}
+		else{
+			pattern->off_period = false;
+			pattern->currentCicle++;
+			return false;
+		}
+	}
+	else{
+		return false;
+	}
+}
+
+void patternRestart(TimerPattern_t* pattern){
+	pattern->done = false;
+}
+
+bool patternCollectionRun(TimerPattern_t ** collection, size_t size) {
+	static uint8_t index;
+	if(patternRun(collection[index])){
+		patternRestart(collection[index]);
+		index++;
+		if(index>size) {
+			index = 0;
+			return true;
+		}
+		else return false;
+	}
+	else return false;
 }
 /* USER CODE END 4 */
 
