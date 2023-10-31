@@ -110,16 +110,26 @@ bool patternRun(TimerPattern_t* pattern);
 
 
 /**
-  * @brief  Ejecuta una secuencia
+  * @brief  Ejecuta en orden las secuencias en un array.
   * @note	Era más fácil el código si tomaba un array de punteros a las estrucutras. Como para poder aceptar arrays de cualquier tamaño tengo que aceptar punteros
   * 		del mismo tipo (osea, puntero a TimerPattern_t), me termina quedando un puntero de puntero a TimerPattern_t.
   * 		Esta función _no_ es thread safe (uso una variable estática).
+  * @param collection Puntero a array de patrones.
   * @param size Tamaño de la colección.
   * @retval true La secuencia finalizó
   * @retval false La secuencia no finalizó
   */
 bool patternCollectionRun(TimerPattern_t ** collection, size_t size, bool continuous);
 
+/**
+  * @brief  Versión thread safe de patternCollectionRun.
+  * @param collection Puntero a array de patrones.
+  * @param size Tamaño de la colección.
+  * @param index Puntero al índice del patrón en ejecución.
+  * @retval true La secuencia finalizó
+  * @retval false La secuencia no finalizó
+  */
+bool patternCollectionRun_s(TimerPattern_t ** collection, size_t size, bool continuous, uint8_t* index );
 
 void patternRestart(TimerPattern_t* pattern);
 
@@ -505,19 +515,23 @@ void patternRestart(TimerPattern_t* pattern){
 	pattern->currentCicle = 0;
 }
 
-bool patternCollectionRun(TimerPattern_t ** collection, size_t size, bool continuous) {
-	static uint8_t index;
-	if(index >= size) return true;
-	if(patternRun(collection[index])){
-		patternRestart(collection[index]);
-		index++;
-		if(index >= size) {
-			if(continuous) index = 0;
+bool patternCollectionRun_s(TimerPattern_t ** collection, size_t size, bool continuous, uint8_t* index) {
+	if(*index >= size) return true;
+	if(patternRun(collection[*index])){
+		patternRestart(collection[*index]);
+		*index = *index + 1;
+		if(*index >= size) {
+			if(continuous) *index = 0;
 			return true;
 		}
 		else return false;
 	}
 	else return false;
+}
+
+bool patternCollectionRun(TimerPattern_t ** collection, size_t size, bool continuous) {
+	static uint8_t index;
+	return patternCollectionRun_s(collection,size,continuous,&index);
 }
 /* USER CODE END 4 */
 
