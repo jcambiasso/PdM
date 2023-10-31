@@ -118,7 +118,7 @@ bool patternRun(TimerPattern_t* pattern);
   * @retval true La secuencia finalizó
   * @retval false La secuencia no finalizó
   */
-bool patternCollectionRun(TimerPattern_t ** collection, size_t size);
+bool patternCollectionRun(TimerPattern_t ** collection, size_t size, bool continuous);
 
 
 void patternRestart(TimerPattern_t* pattern);
@@ -179,7 +179,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  patternCollectionRun(patternArray,3);
+	  patternCollectionRun(patternArray,3,true);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -502,15 +502,17 @@ bool patternRun(TimerPattern_t* pattern){
 
 void patternRestart(TimerPattern_t* pattern){
 	pattern->done = false;
+	pattern->currentCicle = 0;
 }
 
-bool patternCollectionRun(TimerPattern_t ** collection, size_t size) {
+bool patternCollectionRun(TimerPattern_t ** collection, size_t size, bool continuous) {
 	static uint8_t index;
+	if(index >= size) return true;
 	if(patternRun(collection[index])){
 		patternRestart(collection[index]);
 		index++;
-		if(index>size) {
-			index = 0;
+		if(index >= size) {
+			if(continuous) index = 0;
 			return true;
 		}
 		else return false;
