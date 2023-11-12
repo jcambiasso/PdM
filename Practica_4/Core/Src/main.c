@@ -116,7 +116,7 @@ int main(void)
   usrButtonDebounce.pin = USER_Btn_Pin;
   usrButtonDebounce.port = USER_Btn_GPIO_Port;
   /* USER CODE END 2 */
-  debounceFSM_init(&usrButtonDebounce, 1000, false);
+  debounceFSM_init(&usrButtonDebounce, 40, false);
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
