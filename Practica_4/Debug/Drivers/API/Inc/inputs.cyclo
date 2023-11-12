@@ -1,0 +1,3 @@
+../Drivers/API/Inc/inputs.c:10:6:readButton	2
+../Drivers/API/Inc/inputs.c:17:6:debounceFSM_init	2
+../Drivers/API/Inc/inputs.c:25:6:debounceFSM_update	15
