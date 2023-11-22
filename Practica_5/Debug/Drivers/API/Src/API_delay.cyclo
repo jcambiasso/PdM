@@ -1,0 +1,14 @@
+../Drivers/API/Src/API_delay.c:12:10:dummyGetTick	1
+../Drivers/API/Src/API_delay.c:26:6:setGetCurrentTickFunction	2
+../Drivers/API/Src/API_delay.c:30:6:delayInit	2
+../Drivers/API/Src/API_delay.c:40:8:delayRead	6
+../Drivers/API/Src/API_delay.c:60:6:delayWrite	3
+../Drivers/API/Src/API_delay.c:68:6:delayRestart	2
+../Drivers/API/Src/API_delay.c:74:6:delayStart	2
+../Drivers/API/Src/API_delay.c:79:6:delayStop	2
+../Drivers/API/Src/API_delay.c:85:8:delayElapsed	2
+../Drivers/API/Src/API_delay.c:90:6:patternInit	3
+../Drivers/API/Src/API_delay.c:107:6:patternRun	8
+../Drivers/API/Src/API_delay.c:140:6:patternRestart	2
+../Drivers/API/Src/API_delay.c:146:6:patternCollectionRun_s	6
+../Drivers/API/Src/API_delay.c:161:6:patternCollectionRun	2
