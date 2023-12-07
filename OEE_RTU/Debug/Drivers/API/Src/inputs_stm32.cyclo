@@ -1,0 +1,13 @@
+../Drivers/API/Src/inputs_stm32.c:17:6:readPin	4
+../Drivers/API/Src/inputs_stm32.c:25:6:enablePinInterrupt	23
+../Drivers/API/Src/inputs_stm32.c:41:6:enableGlobalInputInterrupts	1
+../Drivers/API/Src/inputs_stm32.c:45:6:disableGlobalInputInterrupts	1
+../Drivers/API/Src/inputs_stm32.c:49:6:primeInput	8
+../Drivers/API/Src/inputs_stm32.c:64:6:attachExternalInterrupt	8
+../Drivers/API/Src/inputs_stm32.c:100:6:EXTI15_10_IRQHandler	8
+../Drivers/API/Src/inputs_stm32.c:109:6:EXTI9_5_IRQHandler	7
+../Drivers/API/Src/inputs_stm32.c:118:6:EXTI0_IRQHandler	2
+../Drivers/API/Src/inputs_stm32.c:122:6:EXTI1_IRQHandler	2
+../Drivers/API/Src/inputs_stm32.c:126:6:EXTI2_IRQHandler	2
+../Drivers/API/Src/inputs_stm32.c:130:6:EXTI3_IRQHandler	2
+../Drivers/API/Src/inputs_stm32.c:134:6:EXTI4_IRQHandler	2

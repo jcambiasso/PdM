@@ -1,0 +1,11 @@
+../Drivers/API/Src/API_uart.c:29:6:uart_registerReceivedCallback	2
+../Drivers/API/Src/API_uart.c:33:6:uart_registerTransmitCompleteCallback	2
+../Drivers/API/Src/API_uart.c:37:6:uart_registerErrorCallback	2
+../Drivers/API/Src/API_uart.c:41:13:uartMspInit	2
+../Drivers/API/Src/API_uart.c:57:13:uartMspDeInit	2
+../Drivers/API/Src/API_uart.c:65:8:uartInit	4
+../Drivers/API/Src/API_uart.c:90:23:uartSendString	2
+../Drivers/API/Src/API_uart.c:96:23:uartSendStringSize	2
+../Drivers/API/Src/API_uart.c:101:23:uartReceiveStringSize	1
+../Drivers/API/Src/API_uart.c:104:23:uartGetState	1
+../Drivers/API/Src/API_uart.c:108:6:USART3_IRQHandler	1

@@ -1,0 +1,4 @@
+../Drivers/API/Src/oee_applicationProtocol.c:12:6:app_init	1
+../Drivers/API/Src/oee_applicationProtocol.c:17:6:app_parse	1
+../Drivers/API/Src/oee_applicationProtocol.c:22:6:app_stringyfy	1
+../Drivers/API/Src/oee_applicationProtocol.c:27:6:app_stringifyEvent	3
